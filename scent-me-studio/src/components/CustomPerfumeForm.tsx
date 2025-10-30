@@ -38,7 +38,7 @@ const CustomPerfumeForm = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
@@ -57,17 +57,39 @@ const CustomPerfumeForm = () => {
       return;
     }
 
-    setShowSummary(true);
-    toast.success("Your custom fragrance request has been submitted!");
-    
-    // Reset form after successful submission
-    setTimeout(() => {
-      setName("");
-      setEmail("");
-      setAdditionalNotes("");
-      setSelection({ topNotes: [], middleNotes: [], baseNotes: [] });
-      setShowSummary(false);
-    }, 5000);
+    // Send to Formspree - REPLACE YOUR_FORM_ID with your actual Formspree form ID
+    try {
+      const response = await fetch("https://formspree.io/f/xwpwqzby", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          topNotes: selection.topNotes.join(", "),
+          middleNotes: selection.middleNotes.join(", "),
+          baseNotes: selection.baseNotes.join(", "),
+          additionalNotes
+        })
+      });
+
+      if (response.ok) {
+        setShowSummary(true);
+        toast.success("Your custom fragrance request has been submitted!");
+        
+        // Reset form after successful submission
+        setTimeout(() => {
+          setName("");
+          setEmail("");
+          setAdditionalNotes("");
+          setSelection({ topNotes: [], middleNotes: [], baseNotes: [] });
+          setShowSummary(false);
+        }, 5000);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
+    } catch (error) {
+      toast.error("Failed to submit. Please check your connection.");
+    }
   };
 
   const totalSelected = selection.topNotes.length + selection.middleNotes.length + selection.baseNotes.length;
